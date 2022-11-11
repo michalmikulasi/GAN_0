@@ -1,3 +1,5 @@
+
+#importing the right libraries that we need
 from __future__ import print_function
 import torch
 import torch.nn as nn
@@ -9,14 +11,22 @@ import torchvision.transforms as transforms
 import torchvision.datasets as dset
 import torchvision.utils as vutils
 
+
+#setting variables that we are gonna need a bit later
 batchSize = 64
 imageSize = 64
 
+
+#transformation and normalization of images. Transformation to Tensor images needs specific values from 0 to 1
 transform = transforms.Compose([transforms.scale(imageSize), transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
+
+#importing, downloading of the CIFAR10 dataset. CIFAR10 has 10 classes of 6000 images each. Together 60000
 dataset = dset.CIFAR10(root = './data', download = True, transform = transform)
 dataloader = torch.utils.data.DataLoader(dataset, batch_size = batchSize, shuffle = True, num_workers = 2)
 
+
+#function to initialze weights for the model
 def weights_init(m):
     classname = m.__class__.__name__
     if classname.find('Conv') != -1:
@@ -25,6 +35,8 @@ def weights_init(m):
         m.weight.data.normal_(1.0, 0.02)
         m.bias.data.fill_(0)
 
+
+#class to create deconvolution, which is of course the exact opposite of convolution    
 class G(nn.Module):
 
     def __init__(self):
@@ -51,10 +63,12 @@ class G(nn.Module):
         return output
 
 
-
+#initialization of the G class. G = generator
 netG = G()
 netG.apply(weights_init)
 
+
+#creating class for our discriminator. This is convolution
 class D(nn.Module):
 
     def __init__(self):
@@ -79,9 +93,14 @@ class D(nn.Module):
         output = self.main(input)
         return output.view(-1)
 
+
+#initializing the Discriminator
 netD = D()
 netD.apply(weights_init)
 
+
+#defining optimization and binary cross-entropy. Actual use of generator and discriminator, complicated mathematics
+#which i really like, defining epochs. At the end just about displaying number of digits, saving images, etc.
 criterion = nn.BCELoss()
 optimizerD = optim.Adam(netD.parameters(), lr=0.0002, betas=(0.5, 0.999))
 optimizerG = optim.Adam(netG.parameters(), lr=0.0002, betas=(0.5, 0.999))
